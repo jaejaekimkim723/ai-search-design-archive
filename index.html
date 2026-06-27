@@ -112,18 +112,23 @@
   .article { display: grid; grid-template-columns: 220px 1fr; align-items: stretch; }
   .article .thumb { width: 220px; aspect-ratio: 1 / 1; height: auto; }
   @media (max-width: 640px) {
-    /* 모바일: 썸네일을 고정 정사각형으로 통일 (세로로 늘어나지 않게) */
-    .article { grid-template-columns: 104px 1fr; align-items: center; }
-    .article .thumb { width: 104px; height: 104px; aspect-ratio: auto; }
-    .card { margin-bottom: 16px; }
-    .card-body { padding: 14px 16px; }
-    .card .kicker { font-size: 11px; margin-bottom: 6px; }
-    .card h3 { font-size: 16px; line-height: 1.4; margin-bottom: 8px; }
-    .card p.desc {
-      font-size: 13px; margin-bottom: 14px;
-      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    /* 모바일: 썸네일이 카드 높이를 꽉 채워 위아래 빈공간 제거 + 콘텐츠 압축 정렬 */
+    .article { grid-template-columns: 118px 1fr; align-items: stretch; min-height: 118px; }
+    .article .thumb { width: 118px; height: auto; aspect-ratio: auto; }
+    .card { margin-bottom: 14px; }
+    .article .card-body {
+      padding: 12px 15px; display: flex; flex-direction: column; justify-content: center;
     }
-    .btn-more { font-size: 13px; padding: 8px 14px; }
+    .card .kicker { font-size: 10px; margin-bottom: 4px; }
+    .card h3 {
+      font-size: 15px; line-height: 1.35; margin-bottom: 6px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card p.desc {
+      font-size: 12px; line-height: 1.5; margin-bottom: 10px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .btn-more { font-size: 12px; padding: 6px 12px; border-radius: 8px; }
   }
 
   /* ── Video embed ── */
