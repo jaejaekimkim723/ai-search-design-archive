@@ -107,6 +107,7 @@
     position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover; object-position: center top; z-index: 2;
   }
+  .thumb img.first-thumb { object-position: left center; } /* PC: 좌측 정렬 */
 
   /* Article = square thumb (left) + summary (right) */
   .article { display: grid; grid-template-columns: 220px 1fr; align-items: stretch; }
@@ -129,6 +130,13 @@
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
     .btn-more { font-size: 12px; padding: 6px 12px; border-radius: 8px; }
+    /* 모바일: 제목과 크레딧 사이 간격 확대 */
+    .hero h1 { margin-bottom: 30px; }
+    /* 모바일: 섹션 영문 부제를 아랫줄로 */
+    .section-head { flex-wrap: wrap; }
+    .section-head span { flex: 1 0 100%; margin-top: 4px; }
+    /* 모바일: 첫 썸네일 우측으로 약 10px */
+    .thumb img.first-thumb { object-position: 10px center; }
   }
 
   /* ── Video embed ── */
@@ -180,7 +188,7 @@
     <article class="card article">
       <div class="thumb" style="--c1:#04d367; --c2:#02a149;">
         <span class="thumb-label">AI탭</span>
-        <img src="img/aitab-try.png" alt="" loading="lazy" style="object-position:left center" onerror="this.remove()">
+        <img src="img/aitab-try.png" alt="" class="first-thumb" loading="lazy" onerror="this.remove()">
       </div>
       <div class="card-body">
         <div class="kicker">search.naver.com</div>
