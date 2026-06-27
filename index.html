@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 검색 경험 & 브랜드 경험 디자인 아카이브 · 김재엽</title>
+<style>
+  :root {
+    --green: #03c75a;
+    --green-dark: #02a149;
+    --ink: #111418;
+    --muted: #5b6470;
+    --line: #e7eaee;
+    --bg: #f6f8fa;
+    --card: #ffffff;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+      "Pretendard", "Malgun Gothic", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+    background: var(--green); z-index: 100; transition: width .1s linear;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    padding: 96px 24px 80px;
+    text-align: center;
+    background:
+      radial-gradient(1200px 500px at 50% -10%, rgba(3,199,90,.18), transparent 60%),
+      linear-gradient(180deg, #0d1b14 0%, #0b211a 100%);
+    color: #fff;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 6vw, 58px); font-weight: 800; line-height: 1.15;
+    letter-spacing: -0.02em; margin-bottom: 18px;
+  }
+  .hero h1 .cue { color: var(--green); }
+  .hero .credit {
+    margin: 0 auto 18px; font-size: clamp(14px, 2vw, 16px); font-weight: 700;
+    color: #e8f3ec; letter-spacing: .01em;
+  }
+  .hero p {
+    max-width: 680px; margin: 0 auto; font-size: clamp(15px, 2.1vw, 17px);
+    color: #b9c4bd; text-align: left; word-break: keep-all;
+  }
+  .hero .resume-btn {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 40px;
+    background: var(--green); color: #04130b; font-weight: 800; font-size: 15px;
+    padding: 14px 28px; border-radius: 999px; text-decoration: none;
+    box-shadow: 0 8px 20px rgba(3,199,90,.28);
+    transition: transform .15s ease, box-shadow .2s ease;
+  }
+  .hero .resume-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(3,199,90,.42); }
+  .scroll-hint {
+    margin-top: 72px; font-size: 13px; color: #8fa399; letter-spacing: .1em;
+    animation: bob 1.8s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+  /* ── Layout ── */
+  main { max-width: 900px; margin: 0 auto; padding: 0 20px 120px; }
+
+  .section-head {
+    display: flex; align-items: baseline; gap: 12px;
+    margin: 80px 0 32px; padding-bottom: 12px; border-bottom: 2px solid var(--line);
+  }
+  .section-head .num {
+    font-size: 14px; font-weight: 800; color: #fff; background: var(--green);
+    width: 26px; height: 26px; border-radius: 50%; display: inline-flex;
+    align-items: center; justify-content: center; align-self: center;
+  }
+  .section-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+  .section-head span { font-size: 13px; color: var(--muted); }
+
+  /* ── Card base ── */
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 26px;
+    opacity: 0; transform: translateY(24px);
+    transition: opacity .6s ease, transform .6s ease, box-shadow .25s ease;
+  }
+  .card.in { opacity: 1; transform: none; }
+  .card:hover { box-shadow: 0 14px 34px rgba(17,20,24,.10); }
+
+  /* ── Thumbnail ── */
+  .thumb {
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, var(--c1, #2b3a4a), var(--c2, #18222e));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .thumb .thumb-label {
+    color: rgba(255,255,255,.92); font-weight: 800; letter-spacing: .02em;
+    font-size: 20px; text-align: center; padding: 0 16px; z-index: 1;
+  }
+  .thumb img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center top; z-index: 2;
+  }
+
+  /* Article = square thumb (left) + summary (right) */
+  .article { display: grid; grid-template-columns: 220px 1fr; align-items: stretch; }
+  .article .thumb { width: 220px; aspect-ratio: 1 / 1; height: auto; }
+  @media (max-width: 640px) {
+    .article { grid-template-columns: 116px 1fr; }
+    .article .thumb { width: 116px; }
+    .card-body { padding: 16px 18px; }
+    .card h3 { font-size: 17px; }
+  }
+
+  /* ── Video embed ── */
+  .video-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #000; }
+  .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  /* ── Card body ── */
+  .card-body { padding: 22px 24px 24px; }
+  .card .kicker {
+    font-size: 12px; font-weight: 700; letter-spacing: .06em;
+    color: var(--green-dark); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .card h3 { font-size: 19px; font-weight: 700; line-height: 1.45; margin-bottom: 12px; }
+  .card p.desc { color: var(--muted); font-size: 15px; margin-bottom: 18px; word-break: keep-all; }
+  .btn-more {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 700; color: #fff; background: var(--green-dark);
+    text-decoration: none; padding: 9px 16px; border-radius: 10px;
+    transition: background .2s ease, transform .15s ease;
+  }
+  .btn-more:hover { background: var(--green); transform: translateY(-1px); }
+  .btn-more .arrow { transition: transform .2s ease; }
+  .btn-more:hover .arrow { transform: translateX(4px); }
+
+  /* ── Footer ── */
+  footer { text-align: center; padding: 40px 20px 60px; color: var(--muted); font-size: 13px; }
+  .top-link {
+    display: inline-block; margin-bottom: 16px; color: var(--green-dark);
+    text-decoration: none; font-weight: 600; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header class="hero" id="top">
+  <h1>AI 검색 경험 &amp; 브랜드 경험<br /><span class="cue">디자인 아카이브</span></h1>
+  <p class="credit">네이버 AI 검색 디자인 총괄 · 김재엽</p>
+  <p>현재 네이버(NAVER)의 AI 검색 설계 디자인 총괄이자 홍익대학교 산업디자인과 부교수로 재직 중입니다. 네이버에서는 생성형 AI 검색 'AI 브리핑'과 최근 런칭한 'AI 탭'을 포함한 지능형 서비스의 성공적인 출시를 이끌었으며, 내부 디자인 프로세스를 AI 네이티브 워크플로우로 혁신하여 조직의 창작 체계를 새롭게 구축하는 작업에 주력하고 있습니다.</p>
+  <a class="resume-btn" href="resume.pdf" target="_blank" rel="noopener">📄 레쥬메 보기</a>
+  <div class="scroll-hint">▼ 스크롤하여 살펴보기</div>
+</header>
+
+<main>
+  <!-- ════ ① AI 탭 ════ -->
+  <section>
+    <div class="section-head"><span class="num">1</span><h2>네이버 AI 탭과 AI 브리핑</h2><span>AI Tab &amp; AI Briefing</span></div>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#04d367; --c2:#02a149;">
+        <span class="thumb-label">AI탭</span>
+        <img src="img/aitab-try.png" alt="" loading="lazy" style="object-position:center center" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">search.naver.com</div>
+        <h3>네이버 AI 탭 바로 써보기</h3>
+        <p class="desc">네이버 통합검색의 'AI 탭'으로 바로 이동합니다. 대화하듯 질문하면 맥락을 이해해 답과 실행을 제안합니다.</p>
+        <a class="btn-more" href="https://search.naver.com/search.naver?ssc=tab.ait.all&sm=svc_clk.aitabmkt&dtm_source=mkt&dtm_medium=link&ait_pv=home" target="_blank" rel="noopener">바로 써보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#16a34a; --c2:#065f46;">
+        <span class="thumb-label">AI탭 소개</span>
+        <img src="img/aitab-about.png" alt="" loading="lazy" style="object-position:center center" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">mkt.naver.com</div>
+        <h3>네이버 AI 탭 알아보기</h3>
+        <p class="desc">네이버 AI 탭의 기능과 사용법을 소개하는 공식 안내 페이지.</p>
+        <a class="btn-more" href="https://mkt.naver.com/aitab?dtm_source=naver_mobs&dtm_medium=mktatrb_etc&dtm_campaign=2607-naverAI-001&pcode=naver_mobs&campaign_id=2607-naverAI-001&channel_id=naver_mobs" target="_blank" rel="noopener">알아보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#03c75a; --c2:#0b211a;">
+        <span class="thumb-label">NAVER Corp.</span>
+        <img src="img/aitab-launch.png" alt="" loading="lazy" style="object-position:center center" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">네이버 보도자료</div>
+        <h3>네이버, 대화형 검색 'AI탭' 정식 출시…5,000만 사용자의 일상으로</h3>
+        <p class="desc">베타 출시 2개월 만에 누적 사용자 400만 명을 달성한 AI탭을 전체 사용자에게 정식 출시. 장소 탐색부터 실시간 예약까지 실행형 AI 에이전트로 기능을 확장했다.</p>
+        <a class="btn-more" href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034429" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#3b82f6; --c2:#1e3a8a;">
+        <span class="thumb-label">NAVER 스토리</span>
+        <img src="img/aibriefing.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">네이버 스토리</div>
+        <h3>네이버, 생성형 AI 검색 'AI 브리핑'</h3>
+        <p class="desc">네이버의 생성형 AI 검색 'AI 브리핑'에 관한 네이버 공식 스토리.</p>
+        <a class="btn-more" href="https://www.navercorp.com/storyDetail?seq=32525" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#06b6d4; --c2:#0e7490;">
+        <span class="thumb-label">지디넷코리아</span>
+        <img src="img/zdnet.png" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">지디넷코리아</div>
+        <h3>네이버 검색창, 대화형 검색 'AI탭'으로 개편</h3>
+        <p class="desc">네이버가 통합검색에 별도의 'AI 탭'을 신설해 대화형 검색 경험을 제공한다. 질문 맥락을 이해해 답과 실행을 함께 제안하는 방향으로 검색창이 개편된다.</p>
+        <a class="btn-more" href="https://n.news.naver.com/article/092/0002428132?sid=105" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#1d4ed8; --c2:#1e293b;">
+        <span class="thumb-label">헤럴드경제</span>
+        <img src="img/herald.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">헤럴드경제</div>
+        <h3>네이버, AI 검색 정보 한눈에 본다…내년 'AI 탭' 도입</h3>
+        <p class="desc">김재엽 검색플랫폼 리더가 기자간담회에서 발표한 네이버의 AI 검색 전략. 통합검색에 'AI 탭'을 신설해 예약·구매·결제까지 한 번에 처리하고, 향후 '통합 에이전트'로 확장한다.</p>
+        <a class="btn-more" href="https://n.news.naver.com/mnews/article/016/0002483767?sid=105" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/jAeBHAqh5N0?rel=0&playsinline=1"
+          title="생성형 AI와 네이버 검색 인터페이스의 확장"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="card-body">
+        <div class="kicker">YouTube · 네이버 NAVER · DAN 24</div>
+        <h3>생성형 AI와 네이버 검색 인터페이스의 확장</h3>
+        <p class="desc">팀네이버 컨퍼런스 DAN 24 'Creative Highlight Session #2'. 생성형 AI가 네이버 검색 인터페이스를 어떻게 확장하는지를 다룬 발표.</p>
+        <a class="btn-more" href="https://www.youtube.com/watch?v=jAeBHAqh5N0" target="_blank" rel="noopener">YouTube에서 열기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/rjSi6W6Hs4U?rel=0&playsinline=1"
+          title="AI와 대화하며 예약·결제까지…네이버"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="card-body">
+        <div class="kicker">YouTube · 서울경제TV</div>
+        <h3>AI와 대화하며 예약·결제까지…네이버</h3>
+        <p class="desc">네이버 AI 탭으로 대화하듯 검색하고 예약·결제까지 이어지는 모습을 다룬 뉴스 영상.</p>
+        <a class="btn-more" href="https://www.youtube.com/watch?v=rjSi6W6Hs4U" target="_blank" rel="noopener">YouTube에서 열기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ════ ② 나의 다른 기사들 ════ -->
+  <section>
+    <div class="section-head"><span class="num">2</span><h2>디자인 인사이트</h2><span>Design Insight</span></div>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#ef4444; --c2:#b91c1c;">
+        <span class="thumb-label">서울경제</span>
+        <img src="img/sedaily-fdf.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">서울경제 · 2026.06.27</div>
+        <h3>AI 입은 디자인 현장 "도구 넘어 협업 파트너로"</h3>
+        <p class="desc">AI가 디자인 작업에서 단순한 도구를 넘어 협업 파트너로 자리 잡아가는 현장을 조명한다. 디자인 프로세스가 AI와 함께 어떻게 바뀌는지를 다룬 기사.</p>
+        <a class="btn-more" href="https://www.sedaily.com/article/20060838" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#0d9488; --c2:#115e59;">
+        <span class="thumb-label">비즈한국</span>
+        <img src="img/bizhankook2.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">비즈한국 · 2025.02.25</div>
+        <h3>[이주의 책] AI 시대 '패스트 무버'가 되기 위한 세 가지 역량</h3>
+        <p class="desc">김재엽 교수의 저서 '패스트 무버'를 다룬 서평. AI 시대에 앞서 나가는 사람들이 갖춘 세 가지 핵심 역량을 짚는다.</p>
+        <a class="btn-more" href="https://www.bizhankook.com/bk/article/29138" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#a855f7; --c2:#6d28d9;">
+        <span class="thumb-label">design.co.kr</span>
+        <img src="img/design.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">design.co.kr · 2024.02.23</div>
+        <h3>네이버 서치, Search Creative X 김재엽 책임 리더 ①</h3>
+        <p class="desc">네이버 서치 'Search Creative X' 책임 리더 김재엽 인터뷰 ①. 긴 문장 검색을 이해해 여러 검색을 자동 수행·종합하는 AI 검색을 위해, 기존 대화형 UI를 '대화형 검색 인터페이스'로 재정의하고 정보 구조와 템플릿을 최적화한 과정을 다룬다.</p>
+        <a class="btn-more" href="https://design.co.kr/article/8677" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#0ea5e9; --c2:#0369a1;">
+        <span class="thumb-label">디지털데일리</span>
+        <img src="img/ddaily.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">디지털데일리 · 2023.11.24</div>
+        <h3>[네이버 어벤저스] 'AI 검색'한다면서, 왜 '디자인 시스템'부터 만들었을까?</h3>
+        <p class="desc">네이버가 AI 검색을 준비하며 왜 '디자인 시스템'부터 구축했는지를 다룬다. 일관된 검색 경험을 위한 디자인 기반 설계 이야기.</p>
+        <a class="btn-more" href="https://www.ddaily.co.kr/page/view/2023112418224124800" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#0d9488; --c2:#115e59;">
+        <span class="thumb-label">비즈한국</span>
+        <img src="img/bizhankook.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">비즈한국 · 2023.10.17</div>
+        <h3>[BbCONF] 김재엽 네이버 디렉터 "AI 고도화로 디자이너 역할 달라질 것"</h3>
+        <p class="desc">브랜드비즈 컨퍼런스(BbCONF)에서 김재엽 네이버 디렉터가 "AI 고도화로 디자이너의 역할이 달라질 것"이라 전망했다. 사진이 현대미술을 바꾼 것처럼 AI도 디자이너의 역할을 바꿀 것이며, 대화형 검색 'cue:'처럼 인터페이스가 더 자연스러워질 것이라 설명했다.</p>
+        <a class="btn-more" href="https://www.bizhankook.com/bk/article/26421" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#f59e0b; --c2:#b45309;">
+        <span class="thumb-label">전자신문</span>
+        <img src="img/etnews.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">전자신문 · 2022.03.28</div>
+        <h3>김재엽 네이버 책임리더 "AI 검색으로 트렌드·취향 제공"</h3>
+        <p class="desc">김재엽 책임리더가 밝힌 네이버 AI 검색의 방향. 사용자의 트렌드와 취향을 반영한 검색 경험을 제공하겠다는 구상을 담았다.</p>
+        <a class="btn-more" href="https://m.etnews.com/20220328000148" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#2563eb; --c2:#1e3a8a;">
+        <span class="thumb-label">AI타임스</span>
+        <img src="img/aitimes.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">AI타임스 · 2022.02.25</div>
+        <h3>네이버, UX 전문가 김재엽 교수 영입…"AI 검색 사용성 높일 것"</h3>
+        <p class="desc">네이버가 홍익대 김재엽 교수를 책임리더로 영입해 AI 검색 '에어서치'의 사용자경험(UX) 개선을 추진한다. 삼성전자·노키아·마이크로소프트 등에서 경험을 쌓은 UX 전문가로, 개인 맞춤형 검색 고도화에 역량을 집중한다.</p>
+        <a class="btn-more" href="https://www.aitimes.com/news/articleView.html?idxno=143199" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ════ ③ Cue: ════ -->
+  <section>
+    <div class="section-head"><span class="num">3</span><h2>생성형 AI 검색 Cue: (Beta)</h2><span>Cue:</span></div>
+
+    <article class="card">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/xhzJFzYgC4I?rel=0&playsinline=1"
+          title="일상을 바꾸는 AI 검색"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="card-body">
+        <div class="kicker">YouTube · 네이버 NAVER</div>
+        <h3>일상을 바꾸는 AI 검색</h3>
+        <p class="desc">네이버가 공개한 AI 검색 공식 소개 영상. 검색이 일상에서 어떻게 달라지는지 보여준다.</p>
+        <a class="btn-more" href="https://www.youtube.com/watch?v=xhzJFzYgC4I" target="_blank" rel="noopener">YouTube에서 열기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/i_V8qNutl88?rel=0&playsinline=1"
+          title="네이버 Cue: 의 아버지와 어머니"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="card-body">
+        <div class="kicker">YouTube · 티타임즈TV</div>
+        <h3>'네이버 Cue:'의 아버지와 어머니의 대답 (김용범 &amp; 김재엽)</h3>
+        <p class="desc">Cue:를 만든 핵심 인물들이 직접 들려주는 생성형 AI 검색의 기획 의도와 비하인드 스토리.</p>
+        <a class="btn-more" href="https://www.youtube.com/watch?v=i_V8qNutl88" target="_blank" rel="noopener">YouTube에서 열기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#04d367; --c2:#02a149;">
+        <span class="thumb-label">Cue:</span>
+        <img src="img/cue.png" alt="" loading="lazy" style="object-position:center center" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">네이버 스토리</div>
+        <h3>네이버 Cue: 생성형 AI 검색</h3>
+        <p class="desc">긴 문장으로 질문하면 의도를 이해해 여러 검색을 자동으로 수행하고 결과를 종합해주는 네이버의 대화형 검색 서비스.</p>
+        <a class="btn-more" href="https://www.navercorp.com/story/storyDetail?seq=2358" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#7c3aed; --c2:#4c1d95;">
+        <span class="thumb-label">NAVERfficial</span>
+        <img src="img/fficial.png" alt="" loading="lazy" style="object-position:center center" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">NAVERfficial</div>
+        <h3>네이버 Cue: 브랜딩의 기록</h3>
+        <p class="desc">생성형 AI 검색 'Cue:'의 브랜드가 어떻게 만들어졌는지, 네이버 공식 채널이 정리한 브랜딩 기록.</p>
+        <a class="btn-more" href="https://fficial.naver.com/contentDetail/61" target="_blank" rel="noopener">더보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ════ ④ 강연 & 발표 ════ -->
+  <section>
+    <div class="section-head"><span class="num">4</span><h2>네이버 서치 콜리퀴움</h2><span>Search Colloquium</span></div>
+
+    <article class="card">
+      <div class="video-wrap">
+        <iframe src="https://tv.naver.com/embed/26585724?autoPlay=false"
+          title="22년 네이버 서치 콜리퀴움 - 사용자 중심 어프로치"
+          allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"
+          frameborder="no" scrolling="no"></iframe>
+      </div>
+      <div class="card-body">
+        <div class="kicker">네이버 TV · NAVER Search</div>
+        <h3>22년 네이버 서치 콜리퀴움 - 사용자 중심 어프로치</h3>
+        <p class="desc">2022년 네이버 서치 콜리퀴움 발표. 검색 설계에서 '사용자 중심 어프로치(User-Centered Approach)'가 어떻게 적용되는지를 다룬다.</p>
+        <a class="btn-more" href="https://tv.naver.com/v/26585724" target="_blank" rel="noopener">네이버 TV에서 열기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ════ ⑤ 그 외 ════ -->
+  <section>
+    <div class="section-head"><span class="num">5</span><h2>Microsoft AI 어시스턴트 Cortana 경험 디자인</h2><span>Cortana</span></div>
+
+    <article class="card">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/G5fa0voNxw8?rel=0&playsinline=1"
+          title="Cortana everywhere"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="card-body">
+        <div class="kicker">YouTube · Microsoft</div>
+        <h3>Cortana everywhere</h3>
+        <p class="desc">마이크로소프트의 AI 어시스턴트 'Cortana'를 소개하는 영상. 음성 기반 어시스턴트의 초기 비전을 보여준다.</p>
+        <a class="btn-more" href="https://www.youtube.com/watch?v=G5fa0voNxw8" target="_blank" rel="noopener">YouTube에서 열기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/jeuRvGNOe3E?rel=0&playsinline=1"
+          title="Stay on track with Cortana in Windows 10"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="card-body">
+        <div class="kicker">YouTube · Microsoft 365</div>
+        <h3>Stay on track with Cortana in Windows 10</h3>
+        <p class="desc">윈도우 10의 AI 어시스턴트 Cortana로 일정과 할 일을 관리하는 사용 경험을 소개하는 영상.</p>
+        <a class="btn-more" href="https://www.youtube.com/watch?v=jeuRvGNOe3E" target="_blank" rel="noopener">YouTube에서 열기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ════ ⑥ Nokia Window Phone OS Design ════ -->
+  <section>
+    <div class="section-head"><span class="num">6</span><h2>Nokia Windows Phone OS Design</h2><span>Nokia</span></div>
+
+    <article class="card">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/e5U-Jm75__M?rel=0&playsinline=1"
+          title="Nokia Lumia 920 Official TVC | Windows Phone"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="card-body">
+        <div class="kicker">YouTube · Windows Phone</div>
+        <h3>Nokia Lumia 920 Official TVC | Windows Phone</h3>
+        <p class="desc">노키아 루미아 920의 공식 TVC. 윈도우폰 OS의 디자인 경험을 보여주는 영상.</p>
+        <a class="btn-more" href="https://www.youtube.com/watch?v=e5U-Jm75__M" target="_blank" rel="noopener">YouTube에서 열기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ════ ⑦ 저서 ════ -->
+  <section>
+    <div class="section-head"><span class="num">7</span><h2>저서</h2><span>Book</span></div>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#1e293b; --c2:#0f172a;">
+        <span class="thumb-label">패스트 무버</span>
+        <img src="img/fastmover2.jpg" alt="" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">교보문고 · 김재엽 지음</div>
+        <h3>패스트 무버 — AI 시대, 150% 성과를 만드는 사람들의 비밀</h3>
+        <p class="desc">삼성·MS·네이버 등 AI 산업 최전선에서 활약해온 김재엽 교수가 찾아낸 인공지능 시대의 생존 전략. '100%에 만족하던 시대는 지났다 — 150%에 도전하라'는 메시지를 담은 저서.</p>
+        <a class="btn-more" href="https://product.kyobobook.co.kr/detail/S000215618421" target="_blank" rel="noopener">교보문고에서 보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+
+    <article class="card article">
+      <div class="thumb" style="--c1:#5eead4; --c2:#0f766e;">
+        <span class="thumb-label">퓨쳐랩</span>
+        <img src="img/futurelab.jpg" alt="" loading="lazy" style="object-position:center center" onerror="this.remove()">
+      </div>
+      <div class="card-body">
+        <div class="kicker">교보문고 · 김재엽 공저</div>
+        <h3>퓨쳐랩 — 미래를 위한 디자인 연구실 이야기</h3>
+        <p class="desc">미래를 위한 디자인 연구실(Future Lab)의 이야기를 담은 책. 디자인이 미래를 어떻게 탐구하고 만들어가는지를 다룬다.</p>
+        <a class="btn-more" href="https://product.kyobobook.co.kr/detail/S000219001214" target="_blank" rel="noopener">교보문고에서 보기 <span class="arrow">→</span></a>
+      </div>
+    </article>
+  </section>
+</main>
+
+<footer>
+  <a class="top-link" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">↑ 맨 위로</a>
+  <div>AI 검색 경험 &amp; 브랜드 경험 디자인 아카이브 · 김재엽</div>
+</footer>
+
+<script>
+  const bar = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    bar.style.width = (scrolled * 100) + '%';
+  });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.card').forEach(c => io.observe(c));
+</script>
+</body>
+</html>
