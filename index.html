@@ -112,10 +112,18 @@
   .article { display: grid; grid-template-columns: 220px 1fr; align-items: stretch; }
   .article .thumb { width: 220px; aspect-ratio: 1 / 1; height: auto; }
   @media (max-width: 640px) {
-    .article { grid-template-columns: 116px 1fr; }
-    .article .thumb { width: 116px; }
-    .card-body { padding: 16px 18px; }
-    .card h3 { font-size: 17px; }
+    /* 모바일: 썸네일을 고정 정사각형으로 통일 (세로로 늘어나지 않게) */
+    .article { grid-template-columns: 104px 1fr; align-items: center; }
+    .article .thumb { width: 104px; height: 104px; aspect-ratio: auto; }
+    .card { margin-bottom: 16px; }
+    .card-body { padding: 14px 16px; }
+    .card .kicker { font-size: 11px; margin-bottom: 6px; }
+    .card h3 { font-size: 16px; line-height: 1.4; margin-bottom: 8px; }
+    .card p.desc {
+      font-size: 13px; margin-bottom: 14px;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .btn-more { font-size: 13px; padding: 8px 14px; }
   }
 
   /* ── Video embed ── */
